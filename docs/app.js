@@ -3,7 +3,41 @@ const mode = document.getElementById("mode");
 const results = document.getElementById("results");
 const status = document.getElementById("status");
 let records = [];
-let source = "fictional sample";
+let source = "archive snapshot";
+
+function flattenArchive(fonds) {
+  if (!Array.isArray(fonds)) throw new Error("Archive JSON must be a list of fonds.");
+  const rows = [];
+  for (const fund of fonds) {
+    if (!fund || typeof fund !== "object") continue;
+    const base = {
+      fund_id: fund.id,
+      fund_number: fund.number,
+      fund_title: fund.title
+    };
+    rows.push({
+      ...base,
+      level: "Fond",
+      title: fund.title,
+      date_start: fund.date_start,
+      date_end: fund.date_end
+    });
+    for (const opis of fund.opisi || []) {
+      if (!opis || typeof opis !== "object") continue;
+      rows.push({
+        ...base,
+        level: "Opis",
+        opis_id: opis.id,
+        opis_number: opis.number,
+        opis_title: opis.title,
+        title: opis.title,
+        date_start: opis.date_start,
+        date_end: opis.date_end
+      });
+    }
+  }
+  return rows;
+}
 
 function parseJsonl(text) {
   const rows = [];
@@ -34,16 +68,18 @@ function makeResult(row) {
   const article = document.createElement("article");
   const meta = document.createElement("div");
   meta.className = "meta";
-  const parts = [
-    "Fond " + field(row, "fund_number", "fund_no", "fund"),
-    "Opis " + field(row, "opis_number", "inventory_number", "inventory_no", "inventory"),
-    "Delo " + field(row, "delo_number", "file_number", "file_no", "number")
-  ].filter(Boolean);
+  const parts = [];
+  const fundNumber = field(row, "fund_number", "fund_no", "fund");
+  const opisNumber = field(row, "opis_number", "inventory_number", "inventory_no", "inventory");
+  const deloNumber = field(row, "delo_number", "file_number", "file_no");
+  if (fundNumber) parts.push("Fond " + fundNumber);
+  if (opisNumber) parts.push("Opis " + opisNumber);
+  if (deloNumber) parts.push("Delo " + deloNumber);
   meta.textContent = parts.join(" · ") || "Catalogue record";
   const title = document.createElement("h3");
-  title.textContent = field(row, "delo_title", "title", "file_title", "name", "opis_title") || "Untitled record";
+  title.textContent = field(row, "delo_title", "title", "file_title", "name", "opis_title", "fund_title") || "Untitled record";
   const details = document.createElement("p");
-  details.textContent = [field(row, "fund_title"), field(row, "opis_title"), field(row, "description", "text", "notes")].filter(Boolean).join(" · ");
+  details.textContent = [row.level === "Opis" ? field(row, "fund_title") : "", field(row, "description", "text", "notes")].filter(Boolean).join(" · ");
   const date = document.createElement("p");
   date.className = "meta";
   date.textContent = [field(row, "date_start", "date", "dates", "year"), field(row, "date_end")].filter(Boolean).join(" – ");
@@ -69,12 +105,13 @@ function search() {
   status.textContent = matches.length + " match" + (matches.length === 1 ? "" : "es") + " in " + records.length + " records (" + source + ")." + (matches.length > 100 ? " Showing the first 100." : "");
 }
 
-async function loadSample() {
+async function loadArchive() {
   try {
-    const response = await fetch("./sample_index.jsonl");
-    if (!response.ok) throw new Error("Could not load the sample index.");
-    records = parseJsonl(await response.text());
-    source = "fictional sample";
+    status.textContent = "Loading archive snapshot…";
+    const response = await fetch("./archive_full.json");
+    if (!response.ok) throw new Error("Could not load the archive snapshot.");
+    records = flattenArchive(await response.json());
+    source = "archive snapshot";
     search();
   } catch (error) {
     status.textContent = error.message;
@@ -84,7 +121,7 @@ async function loadSample() {
 document.getElementById("search").addEventListener("click", search);
 query.addEventListener("keydown", event => { if (event.key === "Enter") search(); });
 mode.addEventListener("change", search);
-document.getElementById("sample").addEventListener("click", loadSample);
+document.getElementById("sample").addEventListener("click", loadArchive);
 document.getElementById("upload").addEventListener("change", async event => {
   const file = event.target.files[0];
   if (!file) return;
@@ -99,4 +136,4 @@ document.getElementById("upload").addEventListener("change", async event => {
   }
 });
 
-loadSample();
+loadArchive();

@@ -11,10 +11,13 @@ USAGE
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     ap.add_argument("terms", nargs="+", help="search term(s), case-insensitive")
     ap.add_argument("--any", action="store_true",

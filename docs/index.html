@@ -42,21 +42,22 @@
   <main>
     <div class="eyebrow">Interactive research tool</div>
     <h1>Archive catalogue search</h1>
-    <p>Search an archival catalogue index by keyword. This demonstration runs entirely in your browser and works without connecting to the archive.</p>
-    <p class="notice"><strong>Sample data:</strong> The eight records loaded here are fictional. They show the search interface and index structure without publishing or collecting any archive data.</p>
+    <p>Search a captured snapshot of the <a href="https://archive.president.kz/ru/funds/ecatalog/">Archive of the President of Kazakhstan’s electronic catalogue</a>. The search runs in your browser without contacting the archive.</p>
+    <p class="notice"><strong>Snapshot scope:</strong> 775 fonds and 2,100 inventories. The supplied JSON contains no individual file records. Catalogue descriptions and dates may have changed since this snapshot was collected; check the official catalogue before citing a result.</p>
     <section class="panel" aria-label="Search controls">
       <div class="row">
-        <div style="flex: 1 1 320px"><label for="query">Search terms</label><input id="query" type="search" value="целина" placeholder="e.g. целина" autocomplete="off"></div>
+        <div style="flex: 1 1 320px"><label for="query">Search terms</label><input id="query" type="search" value="Алма-Атинский" placeholder="e.g. Алма-Атинский" autocomplete="off"></div>
         <div><label for="mode">Match</label><select id="mode"><option value="all">All terms</option><option value="any">Any term</option></select></div>
         <button id="search" type="button">Search</button>
       </div>
       <p>Want to explore another index? <label for="upload">Open your own JSONL file</label><input id="upload" type="file" accept=".jsonl,.txt,application/x-ndjson,text/plain"></p>
-      <button id="sample" type="button">Restore fictional sample</button>
+      <button id="sample" type="button">Restore archive snapshot</button>
+      <p><a href="./archive_full.json" download>Download the complete source JSON</a></p>
     </section>
-    <p id="status" role="status">Loading sample…</p>
+    <p id="status" role="status">Loading archive snapshot…</p>
     <section id="results" class="results" aria-label="Search results"></section>
   </main>
-  <footer>Browser-local demo. No catalogue access or uploads to a server. <a href="https://github.com/SSsensei96/archive-catalog-search">Read the source and limitations.</a></footer>
+  <footer>Browser-local search using a captured catalogue snapshot. No live archive requests or file uploads to a server. <a href="https://github.com/SSsensei96/archive-catalog-search">Read the source and limitations.</a></footer>
   <script src="./app.js" defer></script>
 </body>
 </html>

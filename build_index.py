@@ -10,6 +10,7 @@ Run after scrape_archive.py has produced at least some fund_*.json files.
 Safe to re-run any time to refresh the merged files with newly-scraped fonds.
 """
 
+import argparse
 import json
 from pathlib import Path
 
@@ -17,16 +18,26 @@ OUTPUT_DIR = Path("output_funds")
 
 
 def main():
-    fund_files = sorted(OUTPUT_DIR.glob("fund_*.json"))
-    print(f"Found {len(fund_files)} fond files to merge.")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", help="existing archive_full.json snapshot to index")
+    args = parser.parse_args()
+    if args.input:
+        with open(args.input, encoding="utf-8") as f:
+            full = json.load(f)
+        if not isinstance(full, list):
+            raise ValueError("Input JSON must contain a list of fonds.")
+        print(f"Loaded {len(full)} fonds from {args.input}.")
+    else:
+        fund_files = sorted(OUTPUT_DIR.glob("fund_*.json"))
+        print(f"Found {len(fund_files)} fond files to merge.")
+        full = []
+        for path in fund_files:
+            with open(path, encoding="utf-8") as f:
+                full.append(json.load(f))
 
-    full = []
     index_lines = []
 
-    for path in fund_files:
-        with open(path, encoding="utf-8") as f:
-            fund = json.load(f)
-        full.append(fund)
+    for fund in full:
 
         fund_label = f"{fund.get('number', '')} - {fund.get('title', '')}"
         for op in fund.get("opisi", []):
