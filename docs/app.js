@@ -2,8 +2,14 @@ const query = document.getElementById("query");
 const mode = document.getElementById("mode");
 const results = document.getElementById("results");
 const status = document.getElementById("status");
+const pageStatus = document.getElementById("pageStatus");
+const previousButton = document.getElementById("previous");
+const nextButton = document.getElementById("next");
 let records = [];
 let source = "archive snapshot";
+let matches = [];
+let page = 0;
+const pageSize = 50;
 
 function flattenArchive(fonds) {
   if (!Array.isArray(fonds)) throw new Error("Archive JSON must be a list of fonds.");
@@ -87,22 +93,31 @@ function makeResult(row) {
   return article;
 }
 
-function search() {
-  const terms = query.value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
-  const matches = records.filter(row => {
-    if (!terms.length) return true;
-    const text = searchableText(row);
-    return mode.value === "any" ? terms.some(term => text.includes(term)) : terms.every(term => text.includes(term));
-  });
+function renderPage() {
+  const pageCount = Math.max(1, Math.ceil(matches.length / pageSize));
   results.replaceChildren();
-  for (const row of matches.slice(0, 100)) results.append(makeResult(row));
+  for (const row of matches.slice(page * pageSize, (page + 1) * pageSize)) results.append(makeResult(row));
   if (!matches.length) {
     const empty = document.createElement("p");
     empty.className = "empty";
     empty.textContent = "No matches. Try another term or switch to Any term.";
     results.append(empty);
   }
-  status.textContent = matches.length + " match" + (matches.length === 1 ? "" : "es") + " in " + records.length + " records (" + source + ")." + (matches.length > 100 ? " Showing the first 100." : "");
+  status.textContent = matches.length + " match" + (matches.length === 1 ? "" : "es") + " in " + records.length + " records (" + source + ").";
+  pageStatus.textContent = "Page " + (page + 1) + " of " + pageCount;
+  previousButton.disabled = page === 0;
+  nextButton.disabled = page + 1 >= pageCount;
+}
+
+function search() {
+  const terms = query.value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+  matches = records.filter(row => {
+    if (!terms.length) return true;
+    const text = searchableText(row);
+    return mode.value === "any" ? terms.some(term => text.includes(term)) : terms.every(term => text.includes(term));
+  });
+  page = 0;
+  renderPage();
 }
 
 async function loadArchive() {
@@ -119,6 +134,8 @@ async function loadArchive() {
 }
 
 document.getElementById("search").addEventListener("click", search);
+previousButton.addEventListener("click", () => { if (page > 0) { page -= 1; renderPage(); } });
+nextButton.addEventListener("click", () => { if ((page + 1) * pageSize < matches.length) { page += 1; renderPage(); } });
 query.addEventListener("keydown", event => { if (event.key === "Enter") search(); });
 mode.addEventListener("change", search);
 document.getElementById("sample").addEventListener("click", loadArchive);

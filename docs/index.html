@@ -56,6 +56,11 @@
     </section>
     <p id="status" role="status">Loading archive snapshot…</p>
     <section id="results" class="results" aria-label="Search results"></section>
+    <div class="row" style="margin-top: 1.3rem" aria-label="Result pages">
+      <button id="previous" type="button" disabled>Previous page</button>
+      <span id="pageStatus" aria-live="polite"></span>
+      <button id="next" type="button" disabled>Next page</button>
+    </div>
   </main>
   <footer>Browser-local search using a captured catalogue snapshot. No live archive requests or file uploads to a server. <a href="https://github.com/SSsensei96/archive-catalog-search">Read the source and limitations.</a></footer>
   <script src="./app.js" defer></script>
